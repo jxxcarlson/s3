@@ -1,5 +1,4 @@
 
-NOTE:  all the boto*.py files work except `boto_presigned_url.py`
 
 You need these files:
 
