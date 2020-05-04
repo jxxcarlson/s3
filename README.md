@@ -1,10 +1,10 @@
 
 # Uploading files to S3
 
-(Your text here)
+(Thibault, your text here)
 
 
-## Setting up a Python server to provide presigned urlparse
+## Setting up a Python server to provide presigned urls
 
 ### Installation
 
