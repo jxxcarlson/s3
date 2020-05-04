@@ -11,7 +11,10 @@ import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (placeholder, style, type_)
 import Html.Events exposing (onClick, onInput)
 import Http
-import S3Uploader exposing (S3Msg(..))
+import S3Uploader exposing (..)
+import File
+
+--  (S3Msg(..), S3Uploader)
 
 
 main =
@@ -25,6 +28,8 @@ main =
 
 type alias Model =
     { message : String
+    , s3Uploader : S3Uploader
+
     }
 
 
@@ -42,6 +47,7 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { message = "App started"
+       , s3Uploader = S3Uploader.init
       }
     , Cmd.none
     )
@@ -63,30 +69,25 @@ update msg model =
         ReverseText ->
             ( { model | message = model.message |> String.reverse |> String.toLower }, Cmd.none )
 
-        S3 s3Msg ->
-            case s3Msg of
-                SelectFile mimetypeList ->
-                    model |> withNoCmd
-
-                SelectFiles mimetypeList ->
-                  model |> withNoCmd
-
-                GotUrl file result ->
-                  model |> withNoCmd
-
-                GotPresignedUrl maybePresignUrl ->
-                  model |> withNoCmd
-
-                ImageLoaded file ->
-                  model |> withNoCmd
-
-                ImagesLoaded file fileList ->
-                  model |> withNoCmd
+        S3 msg_ ->
+            S3Uploader.update
+                S3
+                msg_
+                model.s3Uploader
+                (\numberOfUrls ->
+                    generatePresignedUrls numberOfUrls (S3Uploader.gotPresignedUrlMsg << getPresignedUrl)
+                )
+                (\( url, file ) ->
+                    saveAvatarCmd
+                        { url = url
+                        , filename = file |> File.name
+                        , mimetype = file |> File.mime
+                        }
+                )
+                |> Tuple.mapFirst (\s3Uploader -> { model | s3Uploader = s3Uploader })
 
 
-
-
-
+saveAvatarCmd arg = Cmd.none
 
 -- VIEW
 
@@ -95,10 +96,9 @@ view : Model -> Html Msg
 view model =
     div mainStyle
         [ div innerStyle
-            [ label "Skeleton App"
+            [ label "S3 Uploader"
             , messageDisplay model
-            , sampleInput model
-            , sampleButton model
+            , selectFileButton model
             ]
         ]
 
@@ -138,14 +138,14 @@ sampleInput model =
 {- Controls -}
 
 
-seletFileButton model =
-    div [ style "margin-bottom" "0px" ]
-        [ button [ onClick ReverseText ] [ text "Select file" ] ]
-
-
-sampleButton model =
-    div [ style "margin-bottom" "0px" ]
-        [ button [ onClick ReverseText ] [ text "Reverse" ] ]
+selectFileButton model =
+  Html.button [Html.Events.onClick (S3 (S3Uploader.selectFileMsg
+        [ "image/png"
+        , "image/jpg"
+        , "image/gif"
+        ]
+    ))]
+    [text "Upload gallery"]
 
 
 

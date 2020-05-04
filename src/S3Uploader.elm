@@ -19,7 +19,7 @@ import Xml.Decode as XD
 
 
 {-
-   This library's aim is to expose an as simple as possible solution to handle direct upload to S3.
+     This library's aim is to expose an as simple as possible solution to handle direct upload to S3.
    The goal is to remove all the complexity and to let the user handle only needed cases.
    First, the user can pass a cmd that gives back a presigned url from a server (it has to be server side)
    More on that here : https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-presigned-urls.html
