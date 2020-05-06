@@ -7,12 +7,14 @@ module Main exposing (main)
 
 import Browser
 import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
+import File
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (placeholder, style, type_)
 import Html.Events exposing (onClick, onInput)
 import Http
 import S3Uploader exposing (..)
-import File
+
+
 
 --  (S3Msg(..), S3Uploader)
 
@@ -29,7 +31,6 @@ main =
 type alias Model =
     { message : String
     , s3Uploader : S3Uploader
-
     }
 
 
@@ -47,7 +48,7 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { message = "App started"
-       , s3Uploader = S3Uploader.init
+      , s3Uploader = S3Uploader.init
       }
     , Cmd.none
     )
@@ -75,7 +76,7 @@ update msg model =
                 msg_
                 model.s3Uploader
                 (\numberOfUrls ->
-                    generatePresignedUrls numberOfUrls (S3Uploader.gotPresignedUrlMsg << getPresignedUrl)
+                    generatePresignedUrls numberOfUrls (S3Uploader.gotPresignedUrlMsg << parseInsideRes)
                 )
                 (\( url, file ) ->
                     saveAvatarCmd
@@ -87,7 +88,28 @@ update msg model =
                 |> Tuple.mapFirst (\s3Uploader -> { model | s3Uploader = s3Uploader })
 
 
-saveAvatarCmd arg = Cmd.none
+generatePresignedUrls : Int -> (Result Http.Error String -> msg) -> Cmd msg
+generatePresignedUrls numberOfUrls msg =
+    Cmd.batch
+        (List.repeat numberOfUrls
+            (Http.get
+                { url = "http://localhost:8000/?passwd=jollygreengiant!&bucket=noteimages&file=foo.jpg"
+                , expect = Http.expectString msg
+                }
+            )
+        )
+
+
+parseInsideRes : Result Http.Error String -> Maybe PresignedAwsUrl
+parseInsideRes =
+    -- TODO
+    \_ -> Nothing
+
+
+saveAvatarCmd arg =
+    Cmd.none
+
+
 
 -- VIEW
 
@@ -139,13 +161,18 @@ sampleInput model =
 
 
 selectFileButton model =
-  Html.button [Html.Events.onClick (S3 (S3Uploader.selectFileMsg
-        [ "image/png"
-        , "image/jpg"
-        , "image/gif"
+    Html.button
+        [ Html.Events.onClick
+            (S3
+                (S3Uploader.selectFileMsg
+                    [ "image/png"
+                    , "image/jpg"
+                    , "image/gif"
+                    ]
+                )
+            )
         ]
-    ))]
-    [text "Upload gallery"]
+        [ text "Upload gallery" ]
 
 
 
