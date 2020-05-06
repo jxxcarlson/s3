@@ -224,6 +224,7 @@ uploadFileToS3 url file =
             Http.multipartBody
                 [ Http.stringPart "key" url.fields.key
                 , Http.stringPart "policy" url.fields.policy
+                , Http.stringPart "content-type" (File.mime file)
                 , Http.stringPart "success_action_status" url.fields.success_action_status
                 , Http.stringPart "x_amz_algorithm" url.fields.x_amz_algorithm
                 , Http.stringPart "x_amz_credential" url.fields.x_amz_credential
