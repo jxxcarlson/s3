@@ -97,8 +97,27 @@ type alias PresignedAwsUrl =
     }
 
 
+{-| {'url': '<https://noteimages.s3.amazonaws.com/'>,
+'fields': {
+'key': 'foo.jpg'
+, 'AWSAccessKeyId': 'AKIAJQYJYCIAWH6DGHIQ'
+, 'policy': 'eyJleHBpcmF0aW9uIjogIjIwMjAtMDUtMDZUMjM6MDI6MzdaIiwgImNvbmRpdGlvbnMiOiBbeyJidWNrZXQiOiAibm90ZWltYWdlcyJ9LCB7ImtleSI6ICJmb28uanBnIn1dfQ=='
+, 'signature': 'AKh67mKJ7xDFe8uf1qfH6QRoBS8='}}
+
+    * key3832528868: "development/6780a705-221d-470c-86a3-9a3ccbefb6a1/${filename}"
+    * policy3832528868: "eyJleHBpcmF0aW9uIjoiMjAyMC0wNS0wNlQyMDoyMzo0NFoiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJnZXRjb2xsZWN0aXZlLXB1YmxpYy1maWxlcyJ9LFsic3RhcnRzLXdpdGgiLCIka2V5IiwiZGV2ZWxvcG1lbnQvNjc4MGE3MDUtMjIxZC00NzBjLTg2YTMtOWEzY2NiZWZiNmExLyJdLHsic3VjY2Vzc19hY3Rpb25fc3RhdHVzIjoiMjAxIn0seyJ4LWFtei1jcmVkZW50aWFsIjoiQUtJQVVFTElDMkZGTDdIUTNWWkovMjAyMDA1MDYvZXUtd2VzdC0zL3MzL2F3czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjoiQVdTNC1ITUFDLVNIQTI1NiJ9LHsieC1hbXotZGF0ZSI6IjIwMjAwNTA2VDIwMDg0NFoifV19"
+    - success_action_status3832528868: "201"
+    - x_amz_algorithm3832528868: "AWS4-HMAC-SHA256"
+    * x_amz_credential3832528868: "AKIAUELIC2FFL7HQ3VZJ/20200506/eu-west-3/s3/aws4_request"
+    - x_amz_date3832528868: "20200506T200844Z"
+    * x_amz_signature3832528868: "43442ea5adcffbd4bead6364fc5fc35c6a482a19db831de9f2953e769f85664b"
+    * url3832528868: "https://getcollective-public-files.s3.eu-west-3.amazonaws.com/"
+
+-}
+
+
 {-| This type is what your server should give you back.
-It is mandatory to have all the fieds in order to upload directly to S3
+It is mandatory to have all the fields in order to upload directly to S3
 -}
 type alias PresignedAwsUrlFields =
     { key : String

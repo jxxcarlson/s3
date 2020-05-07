@@ -21,6 +21,45 @@ from urllib.parse import urlparse
 
 from botocore.exceptions import ClientError
 
+#
+# key3832528868: "development/6780a705-221d-470c-86a3-9a3ccbefb6a1/${filename}"
+# policy3832528868: "eyJleHBpcmF0aW9uIjoiMjAyMC0wNS0wNlQyMDoyMzo0NFoiLCJjb25kaXRpb25zIjpbeyJidWNrZXQiOiJnZXRjb2xsZWN0aXZlLXB1YmxpYy1maWxlcyJ9LFsic3RhcnRzLXdpdGgiLCIka2V5IiwiZGV2ZWxvcG1lbnQvNjc4MGE3MDUtMjIxZC00NzBjLTg2YTMtOWEzY2NiZWZiNmExLyJdLHsic3VjY2Vzc19hY3Rpb25fc3RhdHVzIjoiMjAxIn0seyJ4LWFtei1jcmVkZW50aWFsIjoiQUtJQVVFTElDMkZGTDdIUTNWWkovMjAyMDA1MDYvZXUtd2VzdC0zL3MzL2F3czRfcmVxdWVzdCJ9LHsieC1hbXotYWxnb3JpdGhtIjoiQVdTNC1ITUFDLVNIQTI1NiJ9LHsieC1hbXotZGF0ZSI6IjIwMjAwNTA2VDIwMDg0NFoifV19"
+# success_action_status3832528868: "201"
+# x_amz_algorithm3832528868: "AWS4-HMAC-SHA256"
+# x_amz_credential3832528868: "AKIAUELIC2FFL7HQ3VZJ/20200506/eu-west-3/s3/aws4_request"
+# x_amz_date3832528868: "20200506T200844Z"
+# x_amz_signature3832528868: "43442ea5adcffbd4bead6364fc5fc35c6a482a19db831de9f2953e769f85664b"
+# url3832528868: "https://getcollective-public-files.s3.eu-west-3.amazonaws.com/"
+
+def create_presigned_post(bucket_name, object_name,
+                          fields=None, conditions=None, expiration=3600):
+    """Generate a presigned URL S3 POST request to upload a file
+
+    :param bucket_name: string
+    :param object_name: string
+    :param fields: Dictionary of prefilled form fields
+    :param conditions: List of conditions to include in the policy
+    :param expiration: Time in seconds for the presigned URL to remain valid
+    :return: Dictionary with the following keys:
+        url: URL to post to
+        fields: Dictionary of form fields and values to submit with the POST
+    :return: None if error.
+    """
+
+    # Generate a presigned S3 POST URL
+    s3_client = boto3.client('s3')
+    try:
+        response = s3_client.generate_presigned_post(bucket_name,
+                                                     object_name,
+                                                     Fields=fields,
+                                                     Conditions=conditions,
+                                                     ExpiresIn=expiration)
+    except ClientError as e:
+        logging.error(e)
+        return None
+
+    # The response contains the presigned URL and required fields
+    return response
 
 def create_presigned_url(bucket_name, object_name, expiration=3600):
     """Generate a presigned URL to share an S3 object
@@ -53,7 +92,7 @@ def respond_to(path):
     bucket_name = parts[1].split("=")[1]
     object_name = parts[2].split("=")[1]
     if passwd == "jollygreengiant!":
-        return create_presigned_url(bucket_name, object_name, expiration=3600)
+        return create_presigned_post(bucket_name, object_name, expiration=3600)
     else:
         return "error"
 
