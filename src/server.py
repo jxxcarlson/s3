@@ -87,32 +87,49 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
     # The response contains the presigned URL
     return response
 
+# The request
+#
+#     http://localhost:8000/?passwd=jollygreengiant!&bucket=noteimages&region=us-east&file=foo.jpg
+#
+# produces the response
+#
+#     {'url': 'https://noteimages.s3.amazonaws.com/',
+#        'fields': {
+#            'success_action_status': '201'
+#          , 'x_amz_algorithm': 'AWS4-HMAC-SHA256'
+#          , 'x_amz_date': '20200507T08051588833977Z'
+#          , 'key': 'foo.jpg'
+#          , 'AWSAccessKeyId': 'AKIAJQYJYCIAWH6DGHIQ'
+#          , 'policy': 'eyJleHBpcmF0aW9uIjogIjIwMjAtMDUtMDdUMDk6NDY6MTdaIiwgImNvbmRpdGlvbnMiOiBbeyJidWNrZXQiOiAibm90ZWltYWdlcyJ9LCB7ImtleSI6ICJmb28uanBnIn1dfQ=='
+#          , 'signature': 'O+9BPaXOfgE1Iv8Nq2U11C5GG34='
+#          }
+#       }
+#
+#     7 fields above, more in the return from the Ruby server
+#     Among the missing:
+#
+#     (1) x_amz_credential3832528868: "AKIAUELIC2FFL7HQ3VZJ/20200506/eu-west-3/s3/aws4_request"
+#     (2) url3832528868: "https://getcollective-public-files.s3.eu-west-3.amazonaws.com/"
+#
+#     I can create (1) by running create_presigned_url, turning its retuern
+#     value into a json object, extracting the AWSAccessKeyId, then appending
+#     data to it.  But this is surely not the right way to do it. Ugh!
+#
+#      Also, what about the 3832528868???
+#
 
 def presigned_url_data(bucket_name, object_name, region):
-    d = datetime.now(timezone.utc)
-    j1 = create_presigned_post(bucket_name, object_name, expiration=3600)
-    ## example (download): http://noteimages.s3.amazonaws.com/mfp.png
-    url = "https://" + bucket_name + ".s3.amazonaws.com"
-    policy = j1.policy
-    key = j1.key
-    success_action_status = "201"
-    x_amz_algorithm = "AWS4-HMAC-SHA256"
-    x_amz_credential = j1.fields.AWSAccessKeyId + "/" + d.strftime("20%y%m%dT%H%m%sZ")+ "/" + region + "/s3/aws4_request"
-    x_amz_date = d.strftime("20%y%m%dT%H%m%sZ")
-    x_amz_signature = j1.fields.signature
 
-    data = { 'url' : url,
-             'fields ' : {
-                 'policy' : policy,
-                 'key' : key,
-                 'success_action_status' : success_action_status,
-                 'x_amz_algorithm' : x_amz_algorithm,
-                 'x_amz_credential' : x_amz_credential,
-                 'x_amz_date' : x_amz_date,
-                 'x_amz_signature' : x_amz_signature
-               }
-           }
-    return json.dumps(data)
+    # x_amz_credential3832528868: "AKIAUELIC2FFL7HQ3VZJ/20200506/eu-west-3/s3/aws4_request"
+    fields = {
+      'success_action_status' : "201",
+      'x_amz_algorithm' : "AWS4-HMAC-SHA256",
+      'x_amz_date' : datetime.now(timezone.utc).strftime("20%y%m%dT%H%m%sZ")
+      }
+    # x_amz_credential = j1.fields.AWSAccessKeyId + "/" + d.strftime("20%y%m%dT%H%m%sZ")+ "/" + region + "/s3/aws4_request"
+
+    return create_presigned_post(bucket_name, object_name,
+                                     fields, conditions=None, expiration=3600)
 
 def respond_to(path):
     o = urlparse(path)
@@ -123,8 +140,8 @@ def respond_to(path):
     object_name = parts[3].split("=")[1]
 
     if passwd == "jollygreengiant!":
-        # return presigned_url_data(bucket_name, object_name, region)
-        return create_presigned_url(bucket_name, object_name)
+        return presigned_url_data(bucket_name, object_name, region)
+        # return create_presigned_url(bucket_name, object_name)
     else:
         return "error"
 
