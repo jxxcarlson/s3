@@ -39,6 +39,8 @@ Then the (Http GET) request
 
 ```
 http://localhost:8000/?passwd=jollygreengiant!&bucket=noteimages&file=foo.jpg
+
+http://localhost:8000/?passwd=jollygreengiant!&bucket=noteimages&region=us-east&file=foo.jpg
 ```
 
 will return a presigned url for the bucket `noteimages` and the file `foo.jpg`.

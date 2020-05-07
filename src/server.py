@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """
 SOURCE: https://gist.github.com/bradmontgomery/2219997
 
@@ -18,6 +19,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import logging
 import boto3
 from urllib.parse import urlparse
+from datetime import datetime, date, time, timezone
+import json
 
 from botocore.exceptions import ClientError
 
@@ -85,14 +88,43 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
     return response
 
 
+def presigned_url_data(bucket_name, object_name, region):
+    d = datetime.now(timezone.utc)
+    j1 = create_presigned_post(bucket_name, object_name, expiration=3600)
+    ## example (download): http://noteimages.s3.amazonaws.com/mfp.png
+    url = "https://" + bucket_name + ".s3.amazonaws.com"
+    policy = j1.policy
+    key = j1.key
+    success_action_status = "201"
+    x_amz_algorithm = "AWS4-HMAC-SHA256"
+    x_amz_credential = j1.fields.AWSAccessKeyId + "/" + d.strftime("20%y%m%dT%H%m%sZ")+ "/" + region + "/s3/aws4_request"
+    x_amz_date = d.strftime("20%y%m%dT%H%m%sZ")
+    x_amz_signature = j1.fields.signature
+
+    data = { 'url' : url,
+             'fields ' : {
+                 'policy' : policy,
+                 'key' : key,
+                 'success_action_status' : success_action_status,
+                 'x_amz_algorithm' : x_amz_algorithm,
+                 'x_amz_credential' : x_amz_credential,
+                 'x_amz_date' : x_amz_date,
+                 'x_amz_signature' : x_amz_signature
+               }
+           }
+    return json.dumps(data)
+
 def respond_to(path):
     o = urlparse(path)
     parts = o.query.split("&")
     passwd = parts[0].split("=")[1]
     bucket_name = parts[1].split("=")[1]
-    object_name = parts[2].split("=")[1]
+    region = parts[2].split("=")[1]
+    object_name = parts[3].split("=")[1]
+
     if passwd == "jollygreengiant!":
-        return create_presigned_post(bucket_name, object_name, expiration=3600)
+        # return presigned_url_data(bucket_name, object_name, region)
+        return create_presigned_url(bucket_name, object_name)
     else:
         return "error"
 
